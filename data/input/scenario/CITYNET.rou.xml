@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+  <!-- Generated for CITYNET.net.xml. SUMO seed controls stochastic flow arrivals, vehicle classes and route choice. Simulation horizon: 600 s. -->
+  <vTypeDistribution id="VTD_ALL">
+    <vType id="car" vClass="passenger" probability="0.68" accel="4.8" decel="2.6" emergencyDecel="4.5" length="4.5" minGap="1.5" maxSpeed="13.9" sigma="0.5" speedFactor="1" speedDev="0.1" carFollowModel="Krauss"/>
+    <vType id="motorcycle" vClass="motorcycle" probability="0.08" accel="7.0" decel="4.5" emergencyDecel="4.5" length="2.2" minGap="1.0" maxSpeed="16.7" sigma="0.6" speedFactor="1" speedDev="0.15" carFollowModel="Krauss"/>
+    <vType id="van" vClass="delivery" probability="0.09" accel="3.5" decel="2.5" emergencyDecel="4.5" length="6.0" minGap="1.8" maxSpeed="13.9" sigma="0.5" speedFactor="1" speedDev="0.12" carFollowModel="Krauss"/>
+    <vType id="truck" vClass="truck" probability="0.06" accel="1.6" decel="2.0" emergencyDecel="4.5" length="12.0" minGap="2.5" maxSpeed="11.1" sigma="0.5" speedFactor="1" speedDev="0.12" carFollowModel="Krauss"/>
+    <vType id="bus" vClass="bus" probability="0.05" accel="1.4" decel="2.0" emergencyDecel="4.5" length="12.0" minGap="2.5" maxSpeed="11.1" sigma="0.5" speedFactor="1" speedDev="0.1" carFollowModel="Krauss"/>
+    <vType id="ambulance" vClass="emergency" probability="0.015" accel="5.0" decel="4.5" emergencyDecel="4.5" length="6.0" minGap="1.5" maxSpeed="16.7" sigma="0.6" speedFactor="1" speedDev="0.08" carFollowModel="Krauss"/>
+    <vType id="police" vClass="emergency" probability="0.015" accel="5.5" decel="4.5" emergencyDecel="4.5" length="5.0" minGap="1.5" maxSpeed="16.7" sigma="0.6" speedFactor="1" speedDev="0.08" carFollowModel="Krauss"/>
+    <vType id="firetruck" vClass="emergency" probability="0.01" accel="1.8" decel="2.0" emergencyDecel="4.5" length="9.0" minGap="2.0" maxSpeed="13.9" sigma="0.5" speedFactor="1" speedDev="0.1" carFollowModel="Krauss"/>
+  </vTypeDistribution>
+  <routeDistribution id="RD_01">
+    <route id="R_01_5_1" edges="ENTRY_01 L008_S2 L008_S3 L058 L056" probability="1"/>
+    <route id="R_01_7_1" edges="ENTRY_01 L008_S2 L008_S3 L058 L056 L046 L042" probability="1"/>
+    <route id="R_01_9_1" edges="ENTRY_01 L008_S2 L008_S3 L058 L056 L046 L042 L040 L030" probability="1"/>
+    <route id="R_01_11_1" edges="ENTRY_01 L008_S2 L008_S3 L058 L056 L046 L042 L040 L030 L026 L022" probability="1"/>
+    <route id="R_01_13_1" edges="ENTRY_01 L008_S2 L008_S3 L058 L056 L046 L042 L040 L030 L026 L022 L020 L010" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_02">
+    <route id="R_02_5_1" edges="ENTRY_02 L008_S3 L058 L056 L046" probability="1"/>
+    <route id="R_02_7_1" edges="ENTRY_02 L008_S3 L058 L056 L046 L042 L040" probability="1"/>
+    <route id="R_02_9_1" edges="ENTRY_02 L008_S3 L058 L056 L046 L042 L040 L030 L026" probability="1"/>
+    <route id="R_02_11_1" edges="ENTRY_02 L008_S3 L058 L056 L046 L042 L040 L030 L026 L022 L020" probability="1"/>
+    <route id="R_02_13_1" edges="ENTRY_02 L008_S3 L058 L056 L046 L042 L040 L030 L026 L022 L020 L010 L008" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_03">
+    <route id="R_03_5_1" edges="ENTRY_03 L015_S2 L023 L029 L035" probability="1"/>
+    <route id="R_03_7_1" edges="ENTRY_03 L015_S2 L023 L029 L035 L035_S2 L035_S3" probability="1"/>
+    <route id="R_03_9_1" edges="ENTRY_03 L015_S2 L023 L029 L035 L035_S2 L035_S3 L043 L051" probability="1"/>
+    <route id="R_03_11_1" edges="ENTRY_03 L015_S2 L023 L029 L035 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3" probability="1"/>
+    <route id="R_03_13_1" edges="ENTRY_03 L015_S2 L023 L029 L035 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003" probability="1"/>
+    <route id="R_03_15_1" edges="ENTRY_03 L015_S2 L023 L029 L035 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009 L015" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_04">
+    <route id="R_04_5_1" edges="ENTRY_04 L021_S2 L025 L031 L031_S2" probability="1"/>
+    <route id="R_04_7_1" edges="ENTRY_04 L021_S2 L025 L031 L031_S2 L037 L041" probability="1"/>
+    <route id="R_04_9_1" edges="ENTRY_04 L021_S2 L025 L031 L031_S2 L037 L041 L047 L053" probability="1"/>
+    <route id="R_04_11_1" edges="ENTRY_04 L021_S2 L025 L031 L031_S2 L037 L041 L047 L053 L059 L005" probability="1"/>
+    <route id="R_04_13_1" edges="ENTRY_04 L021_S2 L025 L031 L031_S2 L037 L041 L047 L053 L059 L005 L011 L017" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_05">
+    <route id="R_05_5_1" edges="ENTRY_05 L027_S2 L033 L033_S2 L039" probability="1"/>
+    <route id="R_05_7_1" edges="ENTRY_05 L027_S2 L033 L033_S2 L039 L045 L045_S2" probability="1"/>
+    <route id="R_05_9_1" edges="ENTRY_05 L027_S2 L033 L033_S2 L039 L045 L045_S2 L045_S3 L049" probability="1"/>
+    <route id="R_05_11_1" edges="ENTRY_05 L027_S2 L033 L033_S2 L039 L045 L045_S2 L045_S3 L049 L055 L001" probability="1"/>
+    <route id="R_05_13_1" edges="ENTRY_05 L027_S2 L033 L033_S2 L039 L045 L045_S2 L045_S3 L049 L055 L001 L007 L013" probability="1"/>
+    <route id="R_05_15_1" edges="ENTRY_05 L027_S2 L033 L033_S2 L039 L045 L045_S2 L045_S3 L049 L055 L001 L007 L013 L019 L027" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_06">
+    <route id="R_06_5_1" edges="ENTRY_06 L033_S2 L039 L045 L045_S2" probability="1"/>
+    <route id="R_06_7_1" edges="ENTRY_06 L033_S2 L039 L045 L045_S2 L045_S3 L049" probability="1"/>
+    <route id="R_06_9_1" edges="ENTRY_06 L033_S2 L039 L045 L045_S2 L045_S3 L049 L055 L001" probability="1"/>
+    <route id="R_06_11_1" edges="ENTRY_06 L033_S2 L039 L045 L045_S2 L045_S3 L049 L055 L001 L007 L013" probability="1"/>
+    <route id="R_06_13_1" edges="ENTRY_06 L033_S2 L039 L045 L045_S2 L045_S3 L049 L055 L001 L007 L013 L019 L027" probability="1"/>
+    <route id="R_06_15_1" edges="ENTRY_06 L033_S2 L039 L045 L045_S2 L045_S3 L049 L055 L001 L007 L013 L019 L027 L027_S2 L033" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_07">
+    <route id="R_07_5_1" edges="ENTRY_07 L035_S2 L035_S3 L043 L051" probability="1"/>
+    <route id="R_07_7_1" edges="ENTRY_07 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3" probability="1"/>
+    <route id="R_07_9_1" edges="ENTRY_07 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003" probability="1"/>
+    <route id="R_07_11_1" edges="ENTRY_07 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009 L015" probability="1"/>
+    <route id="R_07_13_1" edges="ENTRY_07 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023" probability="1"/>
+    <route id="R_07_15_1" edges="ENTRY_07 L035_S2 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_08">
+    <route id="R_08_5_1" edges="ENTRY_08 L035_S3 L043 L051 L051_S2" probability="1"/>
+    <route id="R_08_7_1" edges="ENTRY_08 L035_S3 L043 L051 L051_S2 L051_S3 L057" probability="1"/>
+    <route id="R_08_9_1" edges="ENTRY_08 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009" probability="1"/>
+    <route id="R_08_11_1" edges="ENTRY_08 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2" probability="1"/>
+    <route id="R_08_13_1" edges="ENTRY_08 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029" probability="1"/>
+    <route id="R_08_15_1" edges="ENTRY_08 L035_S3 L043 L051 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035 L035_S2" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_09">
+    <route id="R_09_5_1" edges="ENTRY_09 L045_S2 L045_S3 L049 L055" probability="1"/>
+    <route id="R_09_7_1" edges="ENTRY_09 L045_S2 L045_S3 L049 L055 L001 L007" probability="1"/>
+    <route id="R_09_9_1" edges="ENTRY_09 L045_S2 L045_S3 L049 L055 L001 L007 L013 L019" probability="1"/>
+    <route id="R_09_11_1" edges="ENTRY_09 L045_S2 L045_S3 L049 L055 L001 L007 L013 L019 L027 L027_S2" probability="1"/>
+    <route id="R_09_13_1" edges="ENTRY_09 L045_S2 L045_S3 L049 L055 L001 L007 L013 L019 L027 L027_S2 L033 L033_S2" probability="1"/>
+    <route id="R_09_15_1" edges="ENTRY_09 L045_S2 L045_S3 L049 L055 L001 L007 L013 L019 L027 L027_S2 L033 L033_S2 L039 L045" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_10">
+    <route id="R_10_5_1" edges="ENTRY_10 L045_S3 L049 L055 L001" probability="1"/>
+    <route id="R_10_7_1" edges="ENTRY_10 L045_S3 L049 L055 L001 L007 L013" probability="1"/>
+    <route id="R_10_9_1" edges="ENTRY_10 L045_S3 L049 L055 L001 L007 L013 L019 L027" probability="1"/>
+    <route id="R_10_11_1" edges="ENTRY_10 L045_S3 L049 L055 L001 L007 L013 L019 L027 L027_S2 L033" probability="1"/>
+    <route id="R_10_13_1" edges="ENTRY_10 L045_S3 L049 L055 L001 L007 L013 L019 L027 L027_S2 L033 L033_S2 L039" probability="1"/>
+    <route id="R_10_15_1" edges="ENTRY_10 L045_S3 L049 L055 L001 L007 L013 L019 L027 L027_S2 L033 L033_S2 L039 L045 L045_S2" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_11">
+    <route id="R_11_5_1" edges="ENTRY_11 L051_S2 L051_S3 L057 L003" probability="1"/>
+    <route id="R_11_7_1" edges="ENTRY_11 L051_S2 L051_S3 L057 L003 L009 L015" probability="1"/>
+    <route id="R_11_9_1" edges="ENTRY_11 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023" probability="1"/>
+    <route id="R_11_11_1" edges="ENTRY_11 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035" probability="1"/>
+    <route id="R_11_13_1" edges="ENTRY_11 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035 L035_S2 L035_S3" probability="1"/>
+    <route id="R_11_15_1" edges="ENTRY_11 L051_S2 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035 L035_S2 L035_S3 L043 L051" probability="1"/>
+  </routeDistribution>
+  <routeDistribution id="RD_12">
+    <route id="R_12_5_1" edges="ENTRY_12 L051_S3 L057 L003 L009" probability="1"/>
+    <route id="R_12_7_1" edges="ENTRY_12 L051_S3 L057 L003 L009 L015 L015_S2" probability="1"/>
+    <route id="R_12_9_1" edges="ENTRY_12 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029" probability="1"/>
+    <route id="R_12_11_1" edges="ENTRY_12 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035 L035_S2" probability="1"/>
+    <route id="R_12_13_1" edges="ENTRY_12 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035 L035_S2 L035_S3 L043" probability="1"/>
+    <route id="R_12_15_1" edges="ENTRY_12 L051_S3 L057 L003 L009 L015 L015_S2 L023 L029 L035 L035_S2 L035_S3 L043 L051 L051_S2" probability="1"/>
+  </routeDistribution>
+  
+  <routeDistribution id="RD_13">
+      <route id="R_13_5_1" edges="ENTRY_13 L050_S2 L048 L038 L036" probability="1"/>
+      <route id="R_13_7_1" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018" probability="1"/>
+      <route id="R_13_9_1" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016" probability="1"/>
+      <route id="R_13_9_2" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006" probability="1"/>
+      <route id="R_13_11_1" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004" probability="1"/>
+      <route id="R_13_11_2" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2" probability="1"/>
+      <route id="R_13_13_1" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054" probability="1"/>
+      <route id="R_13_13_2" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054 L050" probability="1"/>
+      <route id="R_13_15_1" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054 L050 L050_S2" probability="1"/>
+      <route id="R_13_18_1" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054 L050 L050_S2 L048 L038 L036" probability="1"/>
+      <route id="R_13_21_1" edges="ENTRY_13 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016" probability="1"/>
+  </routeDistribution>
+
+  
+  <routeDistribution id="RD_14">
+      <route id="R_14_5_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2" probability="1"/>
+      <route id="R_14_7_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038" probability="1"/>
+      <route id="R_14_9_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028" probability="1"/>
+      <route id="R_14_11_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016" probability="1"/>
+      <route id="R_14_11_2" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016 L006" probability="1"/>
+      <route id="R_14_13_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004" probability="1"/>
+      <route id="R_14_13_2" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2" probability="1"/>
+      <route id="R_14_15_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054 L050" probability="1"/>
+      <route id="R_14_18_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054 L050 L050_S2 L048 L038" probability="1"/>
+      <route id="R_14_21_1" edges="ENTRY_14 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016 L006 L004 L004_S2 L054 L050 L050_S2 L048 L038 L036 L028 L018 L016" probability="1"/>
+  </routeDistribution>
+
+
+  <routeDistribution id="RD_15">
+    <route id="R_15_5_1" edges="ENTRY_15 L031_S2 L037 L041 L047" probability="1"/>
+    <route id="R_15_7_1" edges="ENTRY_15 L031_S2 L037 L041 L047 L053 L059" probability="1"/>
+    <route id="R_15_9_1" edges="ENTRY_15 L031_S2 L037 L041 L047 L053 L059 L005 L011" probability="1"/>
+    <route id="R_15_11_1" edges="ENTRY_15 L031_S2 L037 L041 L047 L053 L059 L005 L011 L017 L021" probability="1"/>
+    <route id="R_15_13_1" edges="ENTRY_15 L031_S2 L037 L041 L047 L053 L059 L005 L011 L017 L021 L021_S2 L025" probability="1"/>
+
+  </routeDistribution>
+  <!-- PERIODO P1: 0-120 s -->
+  <flow id="FLOW_01_P1" type="VTD_ALL" route="RD_01" begin="0" end="120" period="exp(15.385)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_02_P1" type="VTD_ALL" route="RD_02" begin="0" end="120" period="exp(24.291)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_03_P1" type="VTD_ALL" route="RD_03" begin="0" end="120" period="exp(27.149)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_04_P1" type="VTD_ALL" route="RD_04" begin="0" end="120" period="exp(40.134)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_05_P1" type="VTD_ALL" route="RD_05" begin="0" end="120" period="exp(43.956)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_06_P1" type="VTD_ALL" route="RD_06" begin="0" end="120" period="exp(17.751)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_07_P1" type="VTD_ALL" route="RD_07" begin="0" end="120" period="exp(29.777)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_08_P1" type="VTD_ALL" route="RD_08" begin="0" end="120" period="exp(20.513)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_09_P1" type="VTD_ALL" route="RD_09" begin="0" end="120" period="exp(22.514)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_10_P1" type="VTD_ALL" route="RD_10" begin="0" end="120" period="exp(34.188)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_11_P1" type="VTD_ALL" route="RD_11" begin="0" end="120" period="exp(25.641)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_12_P1" type="VTD_ALL" route="RD_12" begin="0" end="120" period="exp(31.830)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_13_P1" type="VTD_ALL" route="RD_13" begin="0" end="120" period="exp(41.958)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_14_P1" type="VTD_ALL" route="RD_14" begin="0" end="120" period="exp(48.583)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_15_P1" type="VTD_ALL" route="RD_15" begin="0" end="120" period="exp(19.231)" departLane="best" departSpeed="desired"/>
+
+  <!-- PERIODO P2: 120-300 s -->
+  <flow id="FLOW_01_P2" type="VTD_ALL" route="RD_01" begin="120" end="300" period="exp(10.714)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_02_P2" type="VTD_ALL" route="RD_02" begin="120" end="300" period="exp(16.917)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_03_P2" type="VTD_ALL" route="RD_03" begin="120" end="300" period="exp(18.908)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_04_P2" type="VTD_ALL" route="RD_04" begin="120" end="300" period="exp(27.950)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_05_P2" type="VTD_ALL" route="RD_05" begin="120" end="300" period="exp(30.612)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_06_P2" type="VTD_ALL" route="RD_06" begin="120" end="300" period="exp(12.363)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_07_P2" type="VTD_ALL" route="RD_07" begin="120" end="300" period="exp(20.737)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_08_P2" type="VTD_ALL" route="RD_08" begin="120" end="300" period="exp(14.286)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_09_P2" type="VTD_ALL" route="RD_09" begin="120" end="300" period="exp(15.679)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_10_P2" type="VTD_ALL" route="RD_10" begin="120" end="300" period="exp(23.810)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_11_P2" type="VTD_ALL" route="RD_11" begin="120" end="300" period="exp(17.857)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_12_P2" type="VTD_ALL" route="RD_12" begin="120" end="300" period="exp(22.167)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_13_P2" type="VTD_ALL" route="RD_13" begin="120" end="300" period="exp(29.221)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_14_P2" type="VTD_ALL" route="RD_14" begin="120" end="300" period="exp(33.835)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_15_P2" type="VTD_ALL" route="RD_15" begin="120" end="300" period="exp(13.393)" departLane="best" departSpeed="desired"/>
+
+  <!-- PERIODO P3: 300-420 s -->
+  <flow id="FLOW_01_P3" type="VTD_ALL" route="RD_01" begin="300" end="420" period="exp(8.451)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_02_P3" type="VTD_ALL" route="RD_02" begin="300" end="420" period="exp(13.343)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_03_P3" type="VTD_ALL" route="RD_03" begin="300" end="420" period="exp(14.913)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_04_P3" type="VTD_ALL" route="RD_04" begin="300" end="420" period="exp(22.045)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_05_P3" type="VTD_ALL" route="RD_05" begin="300" end="420" period="exp(24.145)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_06_P3" type="VTD_ALL" route="RD_06" begin="300" end="420" period="exp(9.751)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_07_P3" type="VTD_ALL" route="RD_07" begin="300" end="420" period="exp(16.356)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_08_P3" type="VTD_ALL" route="RD_08" begin="300" end="420" period="exp(11.268)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_09_P3" type="VTD_ALL" route="RD_09" begin="300" end="420" period="exp(12.367)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_10_P3" type="VTD_ALL" route="RD_10" begin="300" end="420" period="exp(18.779)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_11_P3" type="VTD_ALL" route="RD_11" begin="300" end="420" period="exp(14.085)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_12_P3" type="VTD_ALL" route="RD_12" begin="300" end="420" period="exp(17.484)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_13_P3" type="VTD_ALL" route="RD_13" begin="300" end="420" period="exp(23.047)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_14_P3" type="VTD_ALL" route="RD_14" begin="300" end="420" period="exp(26.686)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_15_P3" type="VTD_ALL" route="RD_15" begin="300" end="420" period="exp(10.563)" departLane="best" departSpeed="desired"/>
+
+  <!-- PERIODO P4: 420-600 s -->
+  <flow id="FLOW_01_P4" type="VTD_ALL" route="RD_01" begin="420" end="600" period="exp(13.636)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_02_P4" type="VTD_ALL" route="RD_02" begin="420" end="600" period="exp(21.531)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_03_P4" type="VTD_ALL" route="RD_03" begin="420" end="600" period="exp(24.064)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_04_P4" type="VTD_ALL" route="RD_04" begin="420" end="600" period="exp(35.573)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_05_P4" type="VTD_ALL" route="RD_05" begin="420" end="600" period="exp(38.961)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_06_P4" type="VTD_ALL" route="RD_06" begin="420" end="600" period="exp(15.734)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_07_P4" type="VTD_ALL" route="RD_07" begin="420" end="600" period="exp(26.393)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_08_P4" type="VTD_ALL" route="RD_08" begin="420" end="600" period="exp(18.182)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_09_P4" type="VTD_ALL" route="RD_09" begin="420" end="600" period="exp(19.956)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_10_P4" type="VTD_ALL" route="RD_10" begin="420" end="600" period="exp(30.303)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_11_P4" type="VTD_ALL" route="RD_11" begin="420" end="600" period="exp(22.727)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_12_P4" type="VTD_ALL" route="RD_12" begin="420" end="600" period="exp(28.213)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_13_P4" type="VTD_ALL" route="RD_13" begin="420" end="600" period="exp(37.190)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_14_P4" type="VTD_ALL" route="RD_14" begin="420" end="600" period="exp(43.062)" departLane="best" departSpeed="desired"/>
+  <flow id="FLOW_15_P4" type="VTD_ALL" route="RD_15" begin="420" end="600" period="exp(17.045)" departLane="best" departSpeed="desired"/>
+</routes>
+
