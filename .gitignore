@@ -1,0 +1,20 @@
+
+# DATA: includi config ed evaluation
+/data/*
+!/data/input/
+
+/data/input/*
+!/data/input/config/
+!/data/input/config/**
+!/data/input/scenario/
+!/data/input/scenario/**
+
+# MODELS: escludi tutti i modelli
+/models/
+
+# Altre esclusioni
+.env/
+__pycache__/
+llama.cpp/
+*.pyc
+*:Zone.Identifier
