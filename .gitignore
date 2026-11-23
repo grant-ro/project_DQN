@@ -15,6 +15,5 @@
 # Altre esclusioni
 .env/
 __pycache__/
-llama.cpp/
 *.pyc
 *:Zone.Identifier

@@ -157,13 +157,19 @@ def _get_malicious_agents(agents_id, episode, num_links):
 
     """
     malevolent_agents = set()
+    agents_set = set(agents_id)
 
     for agent_id in agents_id:
-
         neighbors = _adjacency.get(agent_id, [])
 
-        if neighbors:
-            selected_neighbor = neighbors[episode % num_links]
+        # Esclude tutti i TLS che sono agenti addestrati.
+        valid_neighbors = [
+            neighbor for neighbor in neighbors
+            if neighbor not in agents_set
+        ]
+
+        if valid_neighbors:
+            selected_neighbor = valid_neighbors[episode % len(valid_neighbors)]
             malevolent_agents.add(selected_neighbor)
 
     return list(malevolent_agents)
@@ -264,8 +270,8 @@ def calculate_rewards(env, collision_tls, unsafe_tls, suboptimal_tls, agents):
 
     for tls_id, agent_desc in agents.items():
 
-        if tls_id in collision_tls or tls_id in unsafe_tls or tls_id in suboptimal_tls:
-            rewards[tls_id] = 0.0
+        if (tls_id in collision_tls or tls_id in unsafe_tls or tls_id in suboptimal_tls) and agent_desc["goal"]!="CREATE_CONGESTION":
+            rewards[tls_id] = -100.0
             continue
 
         queue = metrics[tls_id]["queue"]
@@ -320,7 +326,7 @@ def calculate_rewards(env, collision_tls, unsafe_tls, suboptimal_tls, agents):
             -w_q * queue_norm
             -w_w * waiting_norm
             +w_f * moving_norm
-            +w_a * arrived_norm
+            #+w_a * arrived_norm
         )
 
         rewards[tls_id] = reward
@@ -393,6 +399,8 @@ def _run_episode(env, agents, max_steps, seed, malicious_agents):
 
         next_observations=_extend_observations(env=env, observations=next_observations, malicious_agents=malicious_agents)
 
+        episode_done = terminated or (step == max_steps - 1)
+
         for tls_id, agent_desc in agents.items():
             agent=agent_desc["agent"]
             agent.remember(
@@ -400,7 +408,7 @@ def _run_episode(env, agents, max_steps, seed, malicious_agents):
                 actions[tls_id],
                 rewards[tls_id],
                 next_observations[tls_id],
-                terminated
+                episode_done
             )
 
             loss = agent.learn()
@@ -723,6 +731,8 @@ def train(
 
         # Chiusura della simulazione SUMO
         env.end_simulation()
+
+    
         
 if __name__ == "__main__":
 

@@ -567,6 +567,10 @@ class Environment:
 
         traci.start(command)
 
+        # Disattiva il programma semaforico automatico per tutti i TLS.
+        for tls_id in self.intersections:
+            traci.trafficlight.setProgram(tls_id, "off")
+
         self.episode = {
             "sim_steps": 0,
             "total_arrived": 0,
@@ -588,6 +592,14 @@ class Environment:
                 "previous_outgoing_vehicles": set()
             }
 
+        # Imposta esplicitamente tutti i link semaforici a rosso in SUMO.
+        for link_index in link_indices:
+            traci.trafficlight.setLinkState(
+                tls_id,
+                link_index,
+                "r"
+            )
+        
         observations = {
             tls_id: self._get_observation(tls_id)
             for tls_id in self.intersections
