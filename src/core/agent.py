@@ -197,8 +197,8 @@ class DQNAgent:
         learning_rate: float = 1e-4,
         gamma: float = 0.99,
         epsilon_start: float = 1.0,
-        epsilon_min: float = 0.05,
-        epsilon_decay: float = 0.995,
+        epsilon_min: float = 0.10,
+        epsilon_decay: float = 0.999,
         batch_size: int = 64,
         replay_capacity: int = 50_000,
         target_update_frequency: int = 500,
@@ -249,6 +249,7 @@ class DQNAgent:
 
         # La rete riceve il numero effettivo di link.
         with torch.random.fork_rng(devices=[]):
+
             if seed is not None:
                 torch.manual_seed(seed)
 
@@ -504,37 +505,6 @@ class DQNAgent:
     # Calcolo del valore Q congiunto
     # -----------------------------------------------------------------------
 
-    def _joint_q_values(
-        self,
-        network: AutoregressiveQNetwork,
-        states: torch.Tensor,
-        action_indices: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        Calcola la Q congiunta sommando i contributi dei singoli link.
-        Ogni decisione è condizionata dalle azioni scelte in precedenza.
-        """
-        batch_size = states.shape[0]
-        prefix = torch.full(
-            (batch_size, self.num_signals),
-            -1,
-            dtype=torch.long,
-            device=self.device,
-        )
-        joint_q = torch.zeros(batch_size, device=self.device)
-
-        for position in range(self.num_signals):
-            q_values = network(states, position, prefix)
-            selected = action_indices[:, position]
-
-            joint_q = joint_q + q_values.gather(
-                1, selected.unsqueeze(1)
-            ).squeeze(1)
-
-            prefix[:, position] = selected
-
-        return joint_q
-
     @torch.no_grad()
     def _max_joint_q(
         self,
@@ -560,70 +530,158 @@ class DQNAgent:
 
         return total
 
+    @torch.no_grad()
+    def _double_dqn_target(
+        self,
+        next_states: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Double DQN autoregressiva.
+
+        La policy network seleziona le azioni.
+        La target network valuta le azioni selezionate.
+        """
+
+        batch_size = next_states.shape[0]
+
+        prefix = torch.full(
+            (batch_size, self.num_signals),
+            -1,
+            dtype=torch.long,
+            device=self.device,
+        )
+
+        total_q = torch.zeros(
+            batch_size,
+            dtype=torch.float32,
+            device=self.device,
+        )
+
+        for position in range(self.num_signals):
+
+            # Policy network: selezione dell'azione
+            policy_q = self.policy_net(
+                next_states,
+                position,
+                prefix,
+            )
+
+            best_indices = policy_q.argmax(dim=1)
+
+            # Target network: valutazione dell'azione
+            target_q = self.target_net(
+                next_states,
+                position,
+                prefix,
+            )
+
+            selected_q = target_q.gather(
+                1,
+                best_indices.unsqueeze(1),
+            ).squeeze(1)
+
+            total_q += selected_q
+
+            # Aggiornamento del contesto autoregressivo
+            prefix[:, position] = best_indices
+
+        return total_q
     # -----------------------------------------------------------------------
     # Aggiornamento DQN
     # -----------------------------------------------------------------------
 
+        
     def learn(self) -> float | None:
-        """Esegue un aggiornamento DQN e restituisce la loss."""
+        """Aggiornamento Double DQN autoregressivo."""
+
         if len(self.replay_buffer) < self.batch_size:
             return None
 
-        transitions = self.replay_buffer.sample(self.batch_size)
+        transitions = self.replay_buffer.sample(
+            self.batch_size
+        )
 
         states = torch.as_tensor(
             np.stack([t.state for t in transitions]),
             dtype=torch.float32,
             device=self.device,
         )
+
         actions = torch.as_tensor(
             np.asarray([t.action_indices for t in transitions]),
             dtype=torch.long,
             device=self.device,
         )
+
         rewards = torch.as_tensor(
             [t.reward for t in transitions],
             dtype=torch.float32,
             device=self.device,
         )
+
         next_states = torch.as_tensor(
             np.stack([t.next_state for t in transitions]),
             dtype=torch.float32,
             device=self.device,
         )
+
         dones = torch.as_tensor(
             [t.done for t in transitions],
             dtype=torch.float32,
             device=self.device,
         )
 
+        # Q delle azioni effettivamente eseguite
         current_q = self._joint_q_values(
-            self.policy_net, states, actions
+            self.policy_net,
+            states,
+            actions,
         )
 
+        # Target Double DQN
         with torch.no_grad():
-            next_q = self._max_joint_q(self.target_net, next_states)
-            targets = rewards + self.gamma * (1.0 - dones) * next_q
 
-        loss = F.smooth_l1_loss(current_q, targets)
+            next_q = self._double_dqn_target(
+                next_states
+            )
+
+            targets = (
+                rewards
+                + self.gamma * (1.0 - dones) * next_q
+            )
+
+        # Calcolo della loss
+        loss = F.smooth_l1_loss(
+            current_q,
+            targets,
+        )
 
         self.optimizer.zero_grad(set_to_none=True)
+
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), 10.0)
+
+        torch.nn.utils.clip_grad_norm_(
+            self.policy_net.parameters(),
+            10.0,
+        )
+
         self.optimizer.step()
 
         self.learn_steps += 1
+
+        # Aggiornamento rete target
         if self.learn_steps % self.target_update_frequency == 0:
             self.update_target_network()
 
         return float(loss.item())
+
 
     def update_target_network(self) -> None:
         """Copia i pesi della rete policy nella rete target."""
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
     def decay_epsilon(self) -> None:
-        """Riduce gradualmente l'esplorazione, senza scendere sotto epsilon_min."""
+
         self.epsilon = max(
             self.epsilon_min,
             self.epsilon * self.epsilon_decay,
@@ -677,9 +735,9 @@ class DQNAgent:
             )
 
         # Verifica dei link controllati
-        saved_link_ids = tuple(checkpoint["link_ids"])
+        saved_link_ids = checkpoint["link_ids"]
 
-        if saved_link_ids != self.link_ids:
+        if set(saved_link_ids) != set(self.link_ids):
             raise ValueError(
                 "I linkID del checkpoint non coincidono con quelli "
                 "configurati nell'agente."
@@ -709,6 +767,102 @@ class DQNAgent:
 
         print(f"Checkpoint caricato correttamente da: {path}")
 
+
+    def _joint_q_values(
+        self,
+        network: AutoregressiveQNetwork,
+        states: torch.Tensor,
+        action_indices: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Calcola la Q congiunta delle azioni realmente eseguite.
+        """
+
+        batch_size = states.shape[0]
+
+        prefix = torch.full(
+            (batch_size, self.num_signals),
+            -1,
+            dtype=torch.long,
+            device=self.device,
+        )
+
+        joint_q = torch.zeros(
+            batch_size,
+            dtype=torch.float32,
+            device=self.device,
+        )
+
+        for position in range(self.num_signals):
+
+            q_values = network(
+                states,
+                position,
+                prefix,
+            )
+
+            selected = action_indices[:, position]
+
+            selected_q = q_values.gather(
+                1,
+                selected.unsqueeze(1),
+            ).squeeze(1)
+
+            joint_q += selected_q
+
+            prefix[:, position] = selected
+
+        return joint_q
+
+
+    @torch.no_grad()
+    def debug_q_values(self, observation):
+
+        state = self._state_tensor(
+            observation
+        ).unsqueeze(0)
+
+        prefix = torch.full(
+            (1, self.num_signals),
+            -1,
+            dtype=torch.long,
+            device=self.device,
+        )
+
+        self.policy_net.eval()
+
+        for position in range(self.num_signals):
+
+            q_values = self.policy_net(
+                state,
+                position,
+                prefix,
+            )
+
+            values, indices = torch.topk(
+                q_values,
+                k=5,
+                dim=1,
+            )
+
+            print(f"\nLink posizione {position}")
+
+            for value, index in zip(
+                values[0].tolist(),
+                indices[0].tolist(),
+            ):
+
+                action = self.index_to_action(index)
+
+                print(
+                    f"Azione: {action} | Q-value: {value:.5f}"
+                )
+
+            best_action = indices[0, 0].item()
+
+            prefix[0, position] = best_action
+
+        self.policy_net.train()
     
 
 
