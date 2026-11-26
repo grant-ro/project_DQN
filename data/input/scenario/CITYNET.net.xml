@@ -600,11 +600,11 @@
         <phase duration="3"  state="ryry"/>
     </tlLogic>
     <tlLogic id="N04" type="static" programID="0" offset="0">
-        <phase duration="27" state="GrGGr"/>
-        <phase duration="3"  state="yryyr"/>
-        <phase duration="27" state="rGgrG"/>
-        <phase duration="3"  state="rygry"/>
-        <phase duration="30" state="GrGGr"/>
+        <phase duration="27" state="GrGr"/>
+        <phase duration="3"  state="yryr"/>
+        <phase duration="27" state="rGrG"/>
+        <phase duration="3"  state="ryry"/>
+        <phase duration="30" state="GrGr"/>
     </tlLogic>
     <tlLogic id="N05" type="static" programID="0" offset="0">
         <phase duration="27" state="GrGr"/>

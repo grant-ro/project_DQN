@@ -38,7 +38,7 @@ MAX_SPEED= 13.89 #m/s
 
 class Environment:
 
-    def __init__(self, traffic_lights, max_elapsed_time=120):
+    def __init__(self, traffic_lights, max_elapsed_time=60):
         """Inizializza l'environment di simulazione
 
         Si aspetta che traffic_light contenga almeno un id valido e che gli id dei traffic light esistano nello scenario caricato in 
@@ -88,15 +88,15 @@ class Environment:
 
         self.max_queue = max_links * max_vehicles_per_edge
         self.max_waiting = max_elapsed_time*max_links+ self.max_queue*0.1
-        self.max_moving = max_links * max(
+        max_moving = max_links * max(
             1,
             int(
                 (MAX_SPEED * self.step_length)
                 / (VEHICLE_LENGTH + MIN_GAP)
             )
         )
-
-        self.max_arrived = self.max_moving
+        self.max_arrived = max_moving
+        self.previous_metrics = {}
     
     
     def _load_scenario_data(self, traffic_lights):
@@ -497,7 +497,54 @@ class Environment:
         for link_index, (color, duration) in action.items():
 
             # Imposta il colore del singolo collegamento.
-            self._set_signal(tls_id, link_index, color)        
+            self._set_signal(tls_id, link_index, color)   
+
+    def _get_metrics(self):
+        """ Restituisce tutte le informazioni utili sullo stato corrente della simulazione
+
+        Args:
+            None
+
+        Returns:
+            Dizionario che associa a ogni tls_id un dizionaio che associa ad ogni link_id una lista di dizionari con i seguenti campi:
+                    - vehicle_id: id di un veicolo fermo sull'edge corrispondente a quel link_id in ingresso.
+                    - waiting_time: tempo di attesa del veicolo con quel vehicle_id.
+                
+        """     
+        metrics = {}
+
+        for tls_id, intersection in self.intersections.items():
+
+            metrics[tls_id] = {}
+
+            for link_id, (incoming_edge, outgoing_edge) in (
+                intersection["link_index"].items()
+            ):
+
+                vehicles_data = []
+
+                vehicle_ids = traci.edge.getLastStepVehicleIDs(
+                    incoming_edge
+                )
+
+                for vehicle_id in vehicle_ids:
+
+                    speed = traci.vehicle.getSpeed(vehicle_id)
+
+                    # SUMO considera fermo un veicolo
+                    # con velocità < 0.1 m/s
+                    if speed < 0.1:
+
+                        vehicles_data.append({
+                            "vehicle_id": vehicle_id,
+                            "waiting_time": traci.vehicle.getWaitingTime(
+                                vehicle_id
+                            )
+                        })
+
+                metrics[tls_id][link_id] = vehicles_data
+
+        return metrics
 
     def end_simulation(self):
         """Termina la simulazione corrente chiudendo la connessione con SUMO
@@ -592,19 +639,20 @@ class Environment:
                 "previous_outgoing_vehicles": set()
             }
 
-        # Imposta esplicitamente tutti i link semaforici a rosso in SUMO.
-        for link_index in link_indices:
-            traci.trafficlight.setLinkState(
-                tls_id,
-                link_index,
-                "r"
-            )
+            # Imposta esplicitamente tutti i link semaforici a rosso in SUMO.
+            for link_index in link_indices:
+                traci.trafficlight.setLinkState(
+                    tls_id,
+                    link_index,
+                    "r"
+                )
         
         observations = {
             tls_id: self._get_observation(tls_id)
             for tls_id in self.intersections
         }
 
+        self.previous_metrics = self._get_metrics()
         return observations
 
 
@@ -653,12 +701,16 @@ class Environment:
         for tls_id, intersection_actions in actions.items():
             self._apply_action(tls_id=tls_id, action=intersection_actions)
 
+        self.previous_metrics = self._get_metrics()
+
         traci.simulationStep()
         
         observations = {
             tls_id: self._get_observation(tls_id)
             for tls_id in self.intersections
         }
+
+        
 
         return observations, terminated
 
@@ -686,6 +738,8 @@ class Environment:
         """
         Valida l'azione dell'impianto semaforico secondo le normative semaforiche vigenti:
         il passaggio da verde a rosso deve prevedere una fase gialla intermedia.
+        non deve consentire il passaggio su vie in conflitto
+        
 
         Args:
             tls_id:id dell'impianto semaforico a cui fa riferimento l'azione
@@ -703,12 +757,29 @@ class Environment:
             if current_color == "G" and requested_color == "r":
                 return False
 
+        intersection = self.intersections[tls_id]
+        conflicts = intersection["conflicts"]
+
+        active_links = {
+            link_index
+            for link_index, (color, duration) in action.items()
+            if color in ("G", "y")
+        }
+
+        for link_index in active_links:
+            conflicting_links = conflicts.get(link_index, set())
+
+            if active_links.intersection(conflicting_links):
+                return False
+
         return True
 
+        
     def get_unsafe_tls(self, actions):
         """ Restituisce un set che contiene i tls_id di tutti gli impianti semaforici che hanno effettuato 
             una mossa contrastante le norme semaforiche:
                 il passaggio da verde a rosso deve prevedere una fase gialla intermedia.
+                consente il passaggio di vie in conflitto
 
             Args:
                 actions:dizionario che a ogni tls_id associa un'azione, rapp da un dizionario che ad ogni link_index associa una tuplca colore,durata 
@@ -726,54 +797,6 @@ class Environment:
             
         return unsafe_tls
 
-
-    def _get_intersection_arrivals(self, tls_id):
-        """
-        Restituisce il numero di veicoli che hanno raggiunto gli edge
-        di uscita dell'incrocio nell'ultimo step.
-
-        Args: 
-            tls_id: id dell'impianto semaforico
-
-        Returns: 
-            numero di veicoli che hanno raggiunto gli edge di uscita dell'incrocio nell'ultimo step.
-        """
-
-        intersection = self.intersections[tls_id]
-
-        # Recupera tutti gli edge di uscita distinti.
-        outgoing_edges = {
-            outgoing_edge
-            for incoming_edge, outgoing_edge
-            in intersection["link_index"].values()
-        }
-
-        # Recupera gli ID dei veicoli attualmente presenti
-        # sugli edge di uscita.
-        current_vehicles = set()
-
-        for edge in outgoing_edges:
-            vehicle_ids = traci.edge.getLastStepVehicleIDs(edge)
-            current_vehicles.update(vehicle_ids)
-
-        # Recupera i veicoli presenti sugli edge di uscita
-        # durante la precedente rilevazione.
-        previous_vehicles = (
-            self.episode["intersections"][tls_id]
-            ["previous_outgoing_vehicles"]
-        )
-
-        # Conta i veicoli comparsi sugli edge di uscita
-        # rispetto alla rilevazione precedente.
-        arrived = len(current_vehicles - previous_vehicles)
-
-        # Aggiorna lo storico per la prossima rilevazione.
-        self.episode["intersections"][tls_id][
-            "previous_outgoing_vehicles"
-        ] = current_vehicles
-
-        return arrived
-
     def get_info(self):
         """ Restituisce tutte le informazioni utili sullo stato corrente della simulazione
 
@@ -782,78 +805,116 @@ class Environment:
 
         Returns:
             Dizionario che associa a ogni tls_id un dizionaio coi seguenti campi:
-                    - queue: numero di veicoli fermi sugli edge in ingresso.
-                    - waiting: tempo medio di attesa dei veicoli in ingresso.
-                    - moving: numero di veicoli in movimento sugli edge in ingresso.
-                    - arrived: numero di veicoli arrivati a destinazione
-                            nell'ultimo step della simulazione.
+                    - queue_gain: somma normalizzata (-1,1) sugli edge in ingresso delle differenze tra il numero di veicoli fermi in ingresso agli edge prima ed ora. #positivo=miglioramento, negativo=peggioramento
+                    - wait_gain: somma normalizzata (-1,1) sugli edge in ingresso delle differenze tra i tempi di attesa dei veicoli in ingresso agli edge prima ed ora. #positivo=miglioramento, negativo=peggioramento
+                    - arrived: somma noramlizzata (0,1) del numero di veicoli precedentemente presenti in attesa su ogni edge e ora non più presenti #positivo=miglioramento, nullo=peggioramento
+                    - outgoing_occupancy: (0,1) media delle percentuali di congestione degli edge in uscita già normalizzata su 0,100
                 
         """
-        metrics = {}
 
-        # Itera su tutti gli incroci presenti nella rete.
+        current_metrics = self._get_metrics()
+
+        info = {}
+
         for tls_id, intersection in self.intersections.items():
 
-            # Recupera tutti gli edge di ingresso associati
-            # ai link_index dell'incrocio.
-            incoming_edges = {
-                incoming_edge
-                for incoming_edge, outgoing_edge
-                in intersection["link_index"].values()
-            }
+            queue_gains = []
+            wait_gains = []
 
-            queue = 0
-            waiting_times = []
-            moving = 0
+            arrived = 0
+            outgoing_congestion = []
 
-            # Analizza ogni edge di ingresso.
-            for edge in incoming_edges:
+            for link_id, (incoming_edge, outgoing_edge) in (
+                intersection["link_index"].items()
+            ):
 
-                # Restituisce la lista degli ID dei veicoli
-                # presenti sull'edge nell'ultimo step simulato.
-                vehicle_ids = traci.edge.getLastStepVehicleIDs(edge)
+                # Metriche precedenti e correnti
+                previous_vehicles = self.previous_metrics[tls_id][link_id]
+                current_vehicles = current_metrics[tls_id][link_id]
 
-                # Restituisce il numero di veicoli fermi sull'edge
-                # (velocità inferiore a 0.1 m/s).
-                queue += traci.edge.getLastStepHaltingNumber(edge)
+                # Identificativi dei veicoli in coda
+                previous_ids = {
+                    vehicle["vehicle_id"]
+                    for vehicle in previous_vehicles
+                }
 
-                for vehicle_id in vehicle_ids:
+                current_ids = {
+                    vehicle["vehicle_id"]
+                    for vehicle in current_vehicles
+                }
 
-                    # Restituisce il tempo corrente di attesa del veicolo,
-                    # espresso in secondi.
-                    waiting_time = traci.vehicle.getWaitingTime(vehicle_id)
-                    waiting_times.append(waiting_time)
+                # Numero di veicoli in coda
+                previous_queue = len(previous_ids)
+                current_queue = len(current_ids)
 
-                    # Restituisce la velocità corrente del veicolo,
-                    # espressa in m/s.
-                    speed = traci.vehicle.getSpeed(vehicle_id)
+                previous_queue_norm = previous_queue/ self.max_queue
+                current_queue_norm = current_queue/ self.max_queue
 
-                    # Considera in movimento i veicoli con velocità >= 0.1 m/s.
-                    if speed >= 0.1:
-                        moving += 1
+                queue_gains.append(
+                    previous_queue_norm - current_queue_norm
+                )
 
-            # Calcola il tempo medio di attesa dei veicoli presenti.
-            # Se non ci sono veicoli, assegna zero.
-            average_waiting = (
-                sum(waiting_times) / len(waiting_times)
-                if waiting_times else 0.0
+                # Tempo totale di attesa dei veicoli in coda
+                previous_waiting = sum(
+                    vehicle["waiting_time"]
+                    for vehicle in previous_vehicles
+                )
+
+                current_waiting = sum(
+                    vehicle["waiting_time"]
+                    for vehicle in current_vehicles
+                )
+
+                previous_waiting_norm= previous_waiting/ self.max_waiting
+                current_waiting_norm= current_waiting/ self.max_waiting
+                
+                wait_gains.append(
+                    previous_waiting_norm - current_waiting_norm
+                )
+
+                # Veicoli precedentemente in coda
+                # che ora non risultano più in coda
+                arrived += len(previous_ids - current_ids)
+
+                # Percentuale di congestione tramite occupazione
+                occupancy = traci.edge.getLastStepOccupancy(
+                    outgoing_edge
+                )
+
+                outgoing_congestion.append(occupancy / 100.0)#normalizzazione tra 0-100
+
+            queue_gain=(
+                sum(queue_gains) / len(queue_gains)
+                if queue_gains else 0.0
             )
+            queue_gain = max(-1.0, min(1.0, queue_gain))
 
-            # Calcola il numero di veicoli comparsi sugli edge di uscita
-            # rispetto allo step precedente per questo incrocio.
-            arrived = self._get_intersection_arrivals(tls_id)
+            wait_gain= (
+                sum(wait_gains) / len(wait_gains)
+                if wait_gains else 0.0
+            )
+            wait_gain = max(-1.0, min(1.0, wait_gain))
 
-            # Salva tutte le metriche dell'incrocio.
-            metrics[tls_id] = {
-                "queue": queue,
-                "waiting": average_waiting,
-                "moving": moving,
-                "arrived": arrived
+            arrived =arrived/self.max_arrived
+            arrived = max(0.0, min(1.0, arrived))
+
+            outgoing_congestion=(
+                sum(outgoing_congestion) / len(outgoing_congestion)
+                if outgoing_congestion else 0.0
+            )
+            outgoing_congestion = max(0.0, min(1.0, outgoing_congestion))
+
+            # Media sugli edge in ingresso/uscita
+            info[tls_id] = {
+                "queue_gain": queue_gain ,
+
+                "wait_gain": wait_gain,
+
+                "arrived": arrived,
+
+                "outgoing_occupancy": outgoing_congestion
             }
 
-        # Restituisce le metriche di tutti gli incroci.
-        return metrics
+        return info
 
-
-
-
+ 

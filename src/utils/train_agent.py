@@ -22,19 +22,19 @@ from core.environment import Environment
 from core.agent import DQNAgent,get_max_state_time
 
 PROJECT_DIR=Path(__file__).resolve().parent.parent.parent
-TRAINING_OUT_DIR= PROJECT_DIR / "data"/"output"/"training"
+TRAINING_OUT_DIR= PROJECT_DIR / "data"/"output"/"training"/"agent"
 MODEL_DIR = TRAINING_OUT_DIR / "models"
 RESULTS_DIR = TRAINING_OUT_DIR / "results" 
 
-TRAINING_IN_DIR= PROJECT_DIR / "data"/ "input" /"training" 
+TRAINING_IN_DIR= PROJECT_DIR / "data"/ "input" /"training"/"agent"
 
 CONFIG_DIR = PROJECT_DIR / "data" / "input" / "config"
 TOPOLOGY_FILE = CONFIG_DIR / "topology.json"
 
-DEFAULT_EPISODES = 500
+DEFAULT_EPISODES = 50
 DEFAULT_MAX_STEPS = 600
 
-WINDOW_SIZE = 100
+WINDOW_SIZE = 20
 SEED = 42
 SAVE_EVERY = 25
 
@@ -51,7 +51,7 @@ _link_to_target=None
 _adjacency = None
 """Dizionario che associa per ogni nodo al suo node_id la lista dei node_id dei nodi adiacenti ad esso."""
 
-def _build_link_to_target(topology):
+def build_link_to_target(topology):
     """Costruisce un dizionario per accedere rapidamente al target di un link
 
     Args:
@@ -71,7 +71,7 @@ def _build_link_to_target(topology):
         for link in topology["links"]
     }
 
-def _build_adjacency(topology):
+def build_adjacency(topology):
     """Costruisce la lista di adiacenza a partire dalla topologia della rete.
 
     Args:
@@ -126,7 +126,7 @@ def get_training_goals():
     """
     return TRAINING_GOALS.copy()
 
-def _set_seed(seed):
+def set_seed(seed):
     """Inizializza i generatori casuali dell'intero addestramento a partire da un unico seme
     
     Args:
@@ -144,7 +144,7 @@ def _set_seed(seed):
         torch.cuda.manual_seed_all(seed) #imposta il seme per i generatori casuali delle GPU.
 
 
-def _get_malicious_agents(agents_id, episode, num_links):
+def get_malicious_agents(agents_id, episode, num_links):
     """Restituisce la lista dei tls_id che si comporteranno in modo malevolo per questo episodio
 
     Args:
@@ -174,7 +174,7 @@ def _get_malicious_agents(agents_id, episode, num_links):
 
     return list(malevolent_agents)
 
-def _extend_observations(env,observations, malicious_agents):
+def extend_observations(env,observations, malicious_agents):
     """Estende le osservazioni con i dati sulla natura dei tls circostanti,
         Aggiunge nel vettore delle osservazioni un valore per ogni tls circostante, pari a
         1 se malevolo, 0 altrimenti
@@ -262,72 +262,70 @@ def calculate_rewards(env, collision_tls, unsafe_tls, suboptimal_tls, agents):
 
     rewards = {}
 
-    # Massimi letti dall'ambiente di simulazione
-    max_queue = env.max_queue
-    max_waiting = env.max_waiting
-    max_moving = env.max_moving
-    max_arrived = env.max_arrived
-
     for tls_id, agent_desc in agents.items():
 
-        if (tls_id in collision_tls or tls_id in unsafe_tls or tls_id in suboptimal_tls) and agent_desc["goal"]!="CREATE_CONGESTION":
-            rewards[tls_id] = -100.0
-            continue
-
-        queue = metrics[tls_id]["queue"]
-        waiting = metrics[tls_id]["waiting"]
-        moving = metrics[tls_id]["moving"]
+        queue = metrics[tls_id]["queue_gain"]
+        waiting = metrics[tls_id]["wait_gain"]
+        occupancy = metrics[tls_id]["outgoing_occupancy"]
         arrived = metrics[tls_id]["arrived"]
-
-        # Normalizzazione nell'intervallo [0, 1]
-        queue_norm = queue / max_queue if max_queue > 0 else 0.0
-        waiting_norm = waiting / max_waiting if max_waiting > 0 else 0.0
-        moving_norm = moving / max_moving if max_moving > 0 else 0.0
-        arrived_norm = arrived / max_arrived if max_arrived > 0 else 0.0
 
         # Calcola il reward utilizzando la formula che dipende dal goal dell'agente
         match agent_desc["goal"]:
 
             case "AVOID_CONGESTION_ONLY":
-                w_q = 1.0 #penalizza le code lunghe in tutte le direzioni
-                w_w = 0.3 #penalizza un'attesa media elevata in tutte le direzioni
-                w_f = 0.2 #premia veicoli in movimento in tutte le direzioni
-                w_a = 2.0 #premia veicoli che hanno attraversato l'incrocio in tutte le direzioni
-                
+                w_q = 2.0 #penalizza la crescita delle code in tutte le direzioni
+                w_w = 0.5 #penalizza la crescita dell'attesa  in tutte le direzioni
+                w_a = 1.0 #premia veicoli che hanno attraversato l'incrocio in tutte le direzioni
+                w_o= 2.0 #penalizza un'occupazione media elevata in uscita all'incrocio in tutte le direzioni 
 
             case "THROUGHPUT_ORIENTED":
-                w_q = 0.5
-                w_w = 0.2
-                w_f = 0.5
+                w_q = 1.0
+                w_w = 1.0
                 w_a = 3.0
+                w_o = 1.0
 
             case "WAITING_ORIENTED":
-                w_q = 0.7
-                w_w = 1.5
-                w_f = 0.2
-                w_a = 1.5
+                w_q = 1.0
+                w_w = 3.0
+                w_a = 1.0
+                w_o = 1.0
 
             case "TRAFFIC_BALANCING":
-                w_q = 0.8
-                w_w = 0.6
-                w_f = 0.3
-                w_a = 2.0
+                w_q = 1.5
+                w_w = 1.5
+                w_a = 1.5
+                w_o = 1.5
 
             case "CREATE_CONGESTION":
-                w_q = -1.0 #premia le code lunghe
-                w_w = -0.3 #premia un'attesa media elevata
-                w_f = 0.5 #premia minimamente veicoli in movimento, per un malevolo realistico
-                w_a = -0.3 #penalizza veicoli che hanno attraversato l'incrocio in tutte le direzioni
+                w_q = -2.0 #premia l'aumento delle code 
+                w_w = -1.0 #premia l'aumento delle attese 
+                w_a = -1.0 #penalizza veicoli che hanno attraversato l'incrocio in tutte le direzioni
+                w_o = 2.0 #premia un'occupazione media elevata in uscita all'incrocio in tutte le direzioni 
 
             case _:
                 raise ValueError("Goal non riconosciuto")
 
         reward = (
-            -w_q * queue_norm
-            -w_w * waiting_norm
-            +w_f * moving_norm
-            #+w_a * arrived_norm
+            +w_q * queue
+            +w_w * waiting
+            +w_a * arrived
+            -w_o * occupancy
         )
+
+        
+        if agent_desc["goal"]!="CREATE_CONGESTION":
+        
+            if tls_id in collision_tls:
+                reward=-10     
+                
+            elif  tls_id in unsafe_tls:
+                reward=-5 
+            
+            elif  tls_id in suboptimal_tls:
+                reward-=2 
+
+        #reward clipping tra -6 e 5
+        reward = np.tanh(reward / 5.0)
 
         rewards[tls_id] = reward
 
@@ -351,7 +349,7 @@ def _run_episode(env, agents, max_steps, seed, malicious_agents):
     """
 
     observations= env.start_simulation(seed=seed) 
-    observations=_extend_observations(env=env, observations=observations, malicious_agents=malicious_agents)
+    observations=extend_observations(env=env, observations=observations, malicious_agents=malicious_agents)
     env.set_malicious_tls(tls_ids=malicious_agents)
 
     #inizializza il total reward per episodio a zero per ogni agente
@@ -397,7 +395,7 @@ def _run_episode(env, agents, max_steps, seed, malicious_agents):
 
         rewards=calculate_rewards(env, collision_tls, unsafe_tls, suboptimal_tls, agents)
 
-        next_observations=_extend_observations(env=env, observations=next_observations, malicious_agents=malicious_agents)
+        next_observations=extend_observations(env=env, observations=next_observations, malicious_agents=malicious_agents)
 
         episode_done = terminated or (step == max_steps - 1)
 
@@ -491,8 +489,8 @@ def train(
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     
-    seed=SEED
-    _set_seed(seed)
+    seed= random.randint(0, 100000)
+    set_seed(seed)
 
     env = Environment(
         traffic_lights=traffic_lights,
@@ -509,7 +507,7 @@ def train(
                 env.intersections[tls_id]["link_index"].keys()
             ),
             observation_size=env.observation_size+env.num_links,
-            seed=seed +i
+            seed=seed + random.randint(0, 100000)
         )
         }
         for i, tls_id in enumerate(traffic_lights)
@@ -614,7 +612,7 @@ def train(
             for episode in range(1, episodes + 1):
                 print(f"Esecuzione episodio n{episode}")
 
-                malicious_tls=_get_malicious_agents(agents_id=agents_id, episode=episode, num_links=env.num_links)
+                malicious_tls=get_malicious_agents(agents_id=agents_id, episode=episode, num_links=env.num_links)
 
 
                 # Esecuzione sincronizzata di tutti gli agenti
@@ -728,9 +726,12 @@ def train(
             )
 
     except:
+        import traceback
+        traceback.print_exc()
 
         # Chiusura della simulazione SUMO
         env.end_simulation()
+        raise
 
     
         
@@ -800,8 +801,8 @@ if __name__ == "__main__":
 
     key,value = config_loader.load_config_file(TOPOLOGY_FILE)
     
-    _adjacency= _build_adjacency(value)
-    _link_to_target= _build_link_to_target(value)
+    _adjacency= build_adjacency(value)
+    _link_to_target= build_link_to_target(value)
 
     train(
         episodes=args.episodes,
